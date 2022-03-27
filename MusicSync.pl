@@ -6,16 +6,20 @@ use 1.000;
 use open qw( :std :encoding(utf8) );
 use Config::INI::Reader;
 use Data::Dumper;
+use lib qx/pwd/."/lib"
+require ConfigLoader;
 require Server;
 require Downloader;
 
+my $configloader = ConfigLoader->new;
+
 my $config;
 
-if (-e 'config.ini') {
-    $config = Config::INI::Reader->read_file('config.ini');
-} else {
-    $config = Config::INI::Reader->read_file('default-config.ini');
-}
+$configloader->getconfig($config);
+
+
+print Dumper(\$config);
+exit 1;
 
 my $server = Server->new;
 
@@ -25,8 +29,10 @@ $server->connection;
 
 my $dwld = Downloader->new;
 
-$dwld->init($config, $server);
+$dwld->init( $config, $server );
 
-$dwld->download($server);
+if ( $config->{'test'}{'download'} != "0" ) {
+    $dwld->download($server);
+}
 
 print "\n";
